@@ -2,6 +2,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import ChordProgressionView from './components/ChordProgressionView';
 import ChordDetailView from './components/ChordDetailView';
 import BpmTimer from './components/BpmTimer';
+import Fretboard from './components/Fretboard';
+import Legend from './components/Legend';
 import { autumnLeavesProgression } from './data/progressions';
 
 function App() {
@@ -197,45 +199,50 @@ function App() {
       </header>
       
       <main className="container mx-auto py-6">
-        {view === 'detail' && (
-          <div className="mb-6">
-            <BpmTimer 
-              onBpmChange={handleBpmChange} 
-              ref={bpmTimerRef}
-            />
-            
-            <div className="mt-4 flex justify-center">
-              <button
-                onClick={toggleAutoplay}
-                className={`px-8 py-3 rounded-lg text-white font-bold text-lg ${
-                  isAutoplay || isCountIn ? 'bg-red-500 hover:bg-red-600' : 'bg-green-500 hover:bg-green-600'
-                }`}
-              >
-                {isCountIn 
-                  ? `${countInBeats}` 
-                  : isAutoplay 
-                    ? '自動再生停止' 
-                    : '自動再生開始'
-                }
-              </button>
-            </div>
-          </div>
-        )}
-        
         {view === 'list' ? (
           <ChordProgressionView 
             progression={progression} 
             onSelectChord={handleSelectChord} 
           />
         ) : (
-          <ChordDetailView 
-            chord={currentChord}
-            onBackToList={handleBackToList}
-            onPrevChord={handlePrevChord}
-            onNextChord={handleNextChord}
-            progression={progression}
-            currentIndex={currentIndex}
-          />
+          <>
+            {/* コード表示とフレットボード - 全幅 */}
+            <div className="w-full mb-6">
+              <ChordDetailView 
+                chord={currentChord}
+                progression={progression}
+                currentIndex={currentIndex}
+                onPrevChord={handlePrevChord}
+                onNextChord={handleNextChord}
+              />
+              <Fretboard chord={currentChord} />
+            </div>
+            
+            {/* 下部のコントロールパネル - グリッドレイアウト */}
+            <div className="grid grid-cols-2 gap-4">
+              {/* 左側: BPMタイマー */}
+              <div>
+                <BpmTimer 
+                  onBpmChange={handleBpmChange} 
+                  ref={bpmTimerRef}
+                  isAutoplay={isAutoplay}
+                  isCountIn={isCountIn}
+                  countInBeats={countInBeats}
+                  onToggleAutoplay={toggleAutoplay}
+                />
+              </div>
+              
+              {/* 右側: コード情報と操作ボタン */}
+              <div>
+                <Legend 
+                  chord={currentChord}
+                  onBackToList={handleBackToList}
+                  onPrevChord={handlePrevChord}
+                  onNextChord={handleNextChord}
+                />
+              </div>
+            </div>
+          </>
         )}
       </main>
       

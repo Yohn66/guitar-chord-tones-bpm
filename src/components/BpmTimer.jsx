@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, forwardRef, useImperativeHandle } from 'react';
 
-const BpmTimer = forwardRef(({ onBpmChange }, ref) => {
+const BpmTimer = forwardRef(({ onBpmChange, isAutoplay, isCountIn, countInBeats, onToggleAutoplay }, ref) => {
   const [bpm, setBpm] = useState(120); // デフォルトのBPM
   const [isCalculating, setIsCalculating] = useState(false);
   const [tapCount, setTapCount] = useState(0);
@@ -180,7 +180,7 @@ const BpmTimer = forwardRef(({ onBpmChange }, ref) => {
   }, []);
   
   return (
-    <div className="p-4 bg-white rounded-lg shadow-md max-w-2xl mx-auto">
+    <div className="p-4 bg-white rounded-lg shadow-md h-full">
       <h3 className="text-lg font-bold mb-4 text-center">BPM設定</h3>
       
       <div className="flex flex-wrap items-center justify-between">
@@ -211,7 +211,7 @@ const BpmTimer = forwardRef(({ onBpmChange }, ref) => {
           {/* リセットボタン */}
           <button
             onClick={resetTap}
-            className="text-xs px-2 py-1 bg-gray-300 hover:bg-gray-400 rounded"
+            className="text-sm px-3 py-1 bg-gray-300 hover:bg-gray-400 rounded"
           >
             リセット
           </button>
@@ -243,9 +243,26 @@ const BpmTimer = forwardRef(({ onBpmChange }, ref) => {
         </div>
       </div>
       
-      <p className="mt-2 text-xs text-gray-600 text-center">
+      <p className="mt-2 text-sm text-gray-600 text-center">
         曲に合わせてタップすると、テンポ(BPM)を自動計算します
       </p>
+      
+      {/* 自動再生ボタン */}
+      <div className="mt-4 flex justify-center">
+        <button
+          onClick={onToggleAutoplay}
+          className={`px-8 py-3 rounded-lg text-white font-bold text-lg ${
+            isAutoplay || isCountIn ? 'bg-red-500 hover:bg-red-600' : 'bg-green-500 hover:bg-green-600'
+          }`}
+        >
+          {isCountIn 
+            ? `${countInBeats}` 
+            : isAutoplay 
+              ? '自動再生停止' 
+              : '自動再生開始'
+          }
+        </button>
+      </div>
     </div>
   );
 });
