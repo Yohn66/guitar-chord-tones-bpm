@@ -1,2 +1,3 @@
-# guitar-chord-tones
-ギター用コードトーン表示アプリ
+
+# guitar-chord-tones-bpm
+ギターコードアプリのBPM機能拡張版
