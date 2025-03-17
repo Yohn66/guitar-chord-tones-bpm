@@ -1,8 +1,8 @@
 import React from 'react';
 import { chordDefinitions, chordColors } from '../data/chords';
-import { getNoteLabel } from '../utils/musicTheory';
+import { getNoteLabel, getChordRomanNotation } from '../utils/musicTheory';
 
-const Legend = ({ chord, onBackToList, onPrevChord, onNextChord }) => {
+const Legend = ({ chord, onBackToList, onPrevChord, onNextChord, key }) => {
   const definition = chordDefinitions[chord];
   
   if (!definition) return null;
@@ -17,10 +17,16 @@ const Legend = ({ chord, onBackToList, onPrevChord, onNextChord }) => {
     'half-diminished': 'ハーフディミニッシュ'
   };
 
+  // カレントコードのキー情報を取得（App.jsxから渡す必要があります）
+  const songKey = key || 'Gm'; // デフォルトでGmを使用（本来はpropsで渡す）
+  const romanNotation = getChordRomanNotation(chord, songKey, chordDefinitions);
+
   return (
     <div className="w-full h-full bg-white p-4 rounded-lg shadow-md flex flex-col justify-between">
       <div>
-        <h3 className="text-xl font-bold mb-3">コード情報: {chord}</h3>
+        <h3 className="text-xl font-bold mb-3">
+          コード情報: {chord} {romanNotation && <span className="text-gray-600">({romanNotation})</span>}
+        </h3>
         
         <div className="mb-3">
           <p className="text-lg">ルート音: <strong>{definition.root}</strong></p>

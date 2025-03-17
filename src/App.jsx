@@ -23,7 +23,7 @@ function App() {
   const bpmTimerRef = useRef(null);
   
   // コード進行
-  const progression = autumnLeavesProgression;
+  const progression = autumnLeavesProgression.chords;
   
   const handleSelectChord = (chord, index) => {
     setCurrentChord(chord);
@@ -201,7 +201,7 @@ function App() {
       <main className="container mx-auto py-6">
         {view === 'list' ? (
           <ChordProgressionView 
-            progression={progression} 
+            progression={autumnLeavesProgression}
             onSelectChord={handleSelectChord} 
           />
         ) : (
@@ -236,6 +236,7 @@ function App() {
               <div>
                 <Legend 
                   chord={currentChord}
+                  songKey={autumnLeavesProgression.key}
                   onBackToList={handleBackToList}
                   onPrevChord={handlePrevChord}
                   onNextChord={handleNextChord}
@@ -247,7 +248,7 @@ function App() {
       </main>
       
       <footer className="bg-gray-200 p-4 text-center text-gray-600">
-        <p>ギターコード進行アプリ - 枯葉</p>
+        <p>ギターコード進行アプリ - {autumnLeavesProgression.title} - キー: {autumnLeavesProgression.key}</p>
       </footer>
     </div>
   );

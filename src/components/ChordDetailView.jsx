@@ -13,15 +13,18 @@ const ChordDetailView = ({
   return (
     <div className="flex flex-col items-center p-4 w-full">
       <div className="w-full flex justify-between items-center mb-2">
+        {/* 固定幅クラスを追加 */}
         <div 
-          className="text-3xl text-gray-500 px-4 py-2 cursor-pointer hover:text-blue-500 transition-colors"
+          className="w-1/3 text-right pr-4 text-3xl text-gray-500 cursor-pointer hover:text-blue-500 transition-colors"
           onClick={onPrevChord}
         >
           ← {prevChord}
         </div>
-        <h2 className="text-6xl font-bold">{chord}</h2>
+        {/* 中央のコードにも固定幅 */}
+        <h2 className="w-1/3 text-center text-6xl font-bold">{chord}</h2>
+        {/* 固定幅クラスを追加 */}
         <div 
-          className="text-3xl text-gray-500 px-4 py-2 cursor-pointer hover:text-blue-500 transition-colors"
+          className="w-1/3 text-left pl-4 text-3xl text-gray-500 cursor-pointer hover:text-blue-500 transition-colors"
           onClick={onNextChord}
         >
           {nextChord} →
