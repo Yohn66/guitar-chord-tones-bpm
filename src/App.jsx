@@ -22,8 +22,17 @@ function App() {
   const beatRef = useRef(null);
   const bpmTimerRef = useRef(null);
   
-  // コード進行
-  const progression = autumnLeavesProgression.chords;
+  // コード進行（全てのコードを連結した配列）
+  const getAllChords = () => {
+    // セクションがある場合はそこからコードを取得、ない場合は直接chordsを使用
+    if (autumnLeavesProgression.sections) {
+      return autumnLeavesProgression.sections.flatMap(section => section.chords);
+    } else {
+      return autumnLeavesProgression.chords;
+    }
+  };
+  
+  const progression = getAllChords();
   
   const handleSelectChord = (chord, index) => {
     setCurrentChord(chord);
