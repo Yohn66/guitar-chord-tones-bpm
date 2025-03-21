@@ -43,6 +43,11 @@ const Fretboard = ({ chord }) => {
     };
   };
   
+  // ノートのカラーを取得する関数
+  const getNoteColor = (notePosition, isBassNote) => {
+    return isBassNote ? chordColors.bassNote : chordColors.default[notePosition - 1];
+  };
+  
   return (
     <div className="w-full bg-white p-4 rounded-lg shadow mx-auto">
       <div className="flex justify-center">
@@ -85,7 +90,7 @@ const Fretboard = ({ chord }) => {
                           <div
                             className="w-8 h-8 rounded-full flex items-center justify-center text-white font-bold"
                             style={{ 
-                              backgroundColor: chordColors.default[noteAtPosition.position - 1] 
+                              backgroundColor: getNoteColor(noteAtPosition.position, noteAtPosition.isBassNote) 
                             }}
                           >
                             {noteAtPosition.note}
@@ -123,7 +128,9 @@ const Fretboard = ({ chord }) => {
                             {noteAtPosition && (
                               <div
                                 className="w-8 h-8 rounded-full flex items-center justify-center text-white font-bold text-xs sm:text-sm"
-                                style={{ backgroundColor: chordColors.default[noteAtPosition.position - 1] }}
+                                style={{ 
+                                  backgroundColor: getNoteColor(noteAtPosition.position, noteAtPosition.isBassNote) 
+                                }}
                               >
                                 {noteAtPosition.note}
                               </div>

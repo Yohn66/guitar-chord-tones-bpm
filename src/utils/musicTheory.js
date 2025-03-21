@@ -1,19 +1,22 @@
 // 音度のラベルを取得する関数
-export const getNoteLabel = (semitone) => {
+export const getNoteLabel = (semitone, isBassNote = false) => {
+  // ベース音の場合は特別な表記を追加
+  const bassText = isBassNote ? '（ベース音）' : '';
+  
   switch (semitone) {
-    case 0: return 'ルート';
-    case 1: return '♭9th';
-    case 2: return '2度/9th';
-    case 3: return '短3度';
-    case 4: return '3度';
-    case 5: return '4度/11th';
-    case 6: return '♭5';
-    case 7: return '5度';
-    case 8: return '♭6';
-    case 9: return '6度/13th';
-    case 10: return '短7度/m7';
-    case 11: return '長7度/△7';
-    default: return `${semitone}`;
+    case 0: return `ルート${bassText}`;
+    case 1: return `♭9th${bassText}`;
+    case 2: return `2度/9th${bassText}`;
+    case 3: return `短3度${bassText}`;
+    case 4: return `3度${bassText}`;
+    case 5: return `4度/11th${bassText}`;
+    case 6: return `♭5${bassText}`;
+    case 7: return `5度${bassText}`;
+    case 8: return `♭6${bassText}`;
+    case 9: return `6度/13th${bassText}`;
+    case 10: return `短7度/m7${bassText}`;
+    case 11: return `長7度/△7${bassText}`;
+    default: return `${semitone}${bassText}`;
   }
 };
 
@@ -182,11 +185,26 @@ export const getChordRomanNotation = (chord, key, chordDefinitions) => {
     return '';
   }
   
-  const root = chordDefinitions[chord].root;
-  const type = chordDefinitions[chord].type;
+  const definition = chordDefinitions[chord];
+  const root = definition.root;
+  const type = definition.type;
   
   const degree = getDegree(root, key);
-  return degreeToRoman(degree, type);
+  const romanRoot = degreeToRoman(degree, type);
+  
+  // オンコードの場合、ベース音のローマ数字も追加
+  if (definition.bass && definition.bassInterval) {
+    // ベース音のディグリーを取得
+    const normalizedBass = normalizeNote(definition.bass);
+    const bassDegree = getDegree(normalizedBass, key);
+    // ベース音のディグリーをローマ数字に変換（コードタイプは無視）
+    const romanBass = degreeToRoman(bassDegree, 'major').replace(/[a-z0-9-]+$/, '');
+    
+    // ルート音/ベース音 の形式で返す
+    return `${romanRoot}/${romanBass}`;
+  }
+  
+  return romanRoot;
 };
 
 // コードのフレット位置を計算する関数
@@ -198,6 +216,11 @@ export const calculateChordPositions = (chord, chordDefinitions, maxFret = 21) =
   
   const rootNote = definition.root;
   const notes = definition.notes;
+  
+  // オンコードの場合のベース音情報
+  const hasBass = definition.bass && definition.bassInterval;
+  const bassNote = hasBass ? definition.bass : null;
+  const bassInterval = hasBass ? definition.bassInterval : null;
   
   // 各弦の開放弦の音
   const openStrings = ['E', 'B', 'G', 'D', 'A', 'E'];
@@ -226,15 +249,19 @@ export const calculateChordPositions = (chord, chordDefinitions, maxFret = 21) =
       const noteIndex = (openNoteIndex + fret) % 12;
       const semitoneFromRoot = (noteIndex - rootIndex + 12) % 12;
       
+      // ベース音かどうかをチェック
+      const isBassNote = hasBass && bassInterval === semitoneFromRoot;
+      
       // この音がコードの構成音であれば位置情報を追加
-      if (notes.includes(semitoneFromRoot)) {
+      if (notes.includes(semitoneFromRoot) || isBassNote) {
         const notePosition = notes.indexOf(semitoneFromRoot);
         positions.push({
           string: string,
           fret: fret,
           note: semitoneFromRoot,
           position: notePosition + 1,  // 1-indexed for display
-          noteName: allNotes[noteIndex]
+          noteName: allNotes[noteIndex],
+          isBassNote: isBassNote // ベース音かどうかを示すフラグ
         });
       }
     }

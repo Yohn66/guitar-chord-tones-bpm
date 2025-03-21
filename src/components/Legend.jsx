@@ -2,7 +2,7 @@ import React from 'react';
 import { chordDefinitions, chordColors } from '../data/chords';
 import { getNoteLabel, getChordRomanNotation } from '../utils/musicTheory';
 
-const Legend = ({ chord, onBackToList, onPrevChord, onNextChord, key }) => {
+const Legend = ({ chord, onBackToList, onPrevChord, onNextChord, songKey }) => {
   const definition = chordDefinitions[chord];
   
   if (!definition) return null;
@@ -14,12 +14,16 @@ const Legend = ({ chord, onBackToList, onPrevChord, onNextChord, key }) => {
     'dominant7': 'ドミナント7',
     'major7': 'メジャー7',
     'minor7': 'マイナー7',
-    'half-diminished': 'ハーフディミニッシュ'
+    'half-diminished': 'ハーフディミニッシュ',
+    'dominant7-suspended4': 'ドミナント7サス4'
   };
 
-  // カレントコードのキー情報を取得（App.jsxから渡す必要があります）
-  const songKey = key || 'Gm'; // デフォルトでGmを使用（本来はpropsで渡す）
-  const romanNotation = getChordRomanNotation(chord, songKey, chordDefinitions);
+  // カレントコードのキー情報を取得
+  const currentKey = songKey || 'Gm'; // デフォルトでGmを使用
+  const romanNotation = getChordRomanNotation(chord, currentKey, chordDefinitions);
+
+  // オンコードかどうかを確認
+  const isOnChord = definition.bass && definition.bassInterval;
 
   return (
     <div className="w-full h-full bg-white p-4 rounded-lg shadow-md flex flex-col justify-between">
@@ -31,21 +35,30 @@ const Legend = ({ chord, onBackToList, onPrevChord, onNextChord, key }) => {
         <div className="mb-3">
           <p className="text-lg">ルート音: <strong>{definition.root}</strong></p>
           <p className="text-lg">コードタイプ: <strong>{chordTypeJapanese[definition.type] || definition.type}</strong></p>
+          {isOnChord && (
+            <p className="text-lg">ベース音: <strong>{definition.bass}</strong></p>
+          )}
         </div>
         
         <h4 className="text-lg font-bold mb-2">構成音:</h4>
         <div className="flex flex-wrap gap-3">
-          {definition.notes.map((note, index) => (
-            <div key={index} className="flex items-center mb-1">
-              <div 
-                className="w-10 h-10 rounded-full mr-2 flex items-center justify-center text-white font-bold"
-                style={{ backgroundColor: chordColors.default[index] }}
-              >
-                {note}
+          {definition.notes.map((note, index) => {
+            // オンコードの場合、ベース音かどうかを判定
+            const isBassNote = isOnChord && note === definition.bassInterval;
+            return (
+              <div key={index} className="flex items-center mb-1">
+                <div 
+                  className="w-10 h-10 rounded-full mr-2 flex items-center justify-center text-white font-bold"
+                  style={{ 
+                    backgroundColor: isBassNote ? chordColors.bassNote : chordColors.default[index] 
+                  }}
+                >
+                  {note}
+                </div>
+                <span className="text-lg">{getNoteLabel(note, isBassNote)}</span>
               </div>
-              <span className="text-lg">{getNoteLabel(note)}</span>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
       

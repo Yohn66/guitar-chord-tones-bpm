@@ -65,6 +65,16 @@ const ChordProgressionView = ({ progression, onSelectChord }) => {
                         </div>
                       );
                     })}
+                    
+                    {/* 行の最後を埋める（4小節に満たない場合） */}
+                    {Array.from({ length: 4 - row.length }).map((_, i) => (
+                      <div 
+                        key={`empty-num-${i}`} 
+                        className="flex-1 text-left pl-2"
+                      >
+                        &nbsp;
+                      </div>
+                    ))}
                   </div>
                   
                   {/* コード表示 */}
@@ -76,9 +86,7 @@ const ChordProgressionView = ({ progression, onSelectChord }) => {
                       return (
                         <div 
                           key={barIndex} 
-                          className={`flex-1 min-h-24 flex items-center justify-center py-4 ${
-                            barIndex < row.length - 1 ? 'border-r border-gray-400' : ''
-                          }`}
+                          className="flex-1 min-h-24 flex items-center justify-center py-4 border-r border-gray-400"
                           style={{ borderLeft: barIndex === 0 ? '1px solid #ccc' : 'none' }}
                         >
                           <button
@@ -98,7 +106,7 @@ const ChordProgressionView = ({ progression, onSelectChord }) => {
                     {Array.from({ length: 4 - row.length }).map((_, i) => (
                       <div 
                         key={`empty-${i}`} 
-                        className="flex-1 min-h-24 border-r border-gray-400 bg-gray-50"
+                        className="flex-1 min-h-24 border-r border-gray-400"
                       ></div>
                     ))}
                   </div>
