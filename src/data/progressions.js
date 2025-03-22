@@ -121,8 +121,35 @@ export const wishYouWereHereProgression = {
   ]
 };
 
+// lofi2のコード進行
+export const lofi2Progression = {
+  id: 'lofi-2',
+  title: "lofi2",
+  artist: "村山叡",
+  key: "C",  // キー情報
+  sections: [
+    {
+      name: "Aメロ",
+      chords: [
+        'Dm7', 'G7', 'C△7', 'A7',
+        'Dm7', 'G7', 'C△7', 'A7',
+        'Dm7', 'G7', 'C△7', 'A7',
+        'Dm7', 'G7', 'C△7', 'A7',
+      ]
+    }
+  ],
+  // 全てのコードを配列として平坦化
+  chords: [
+    'Dm7', 'G7', 'C△7', 'A7',
+    'Dm7', 'G7', 'C△7', 'A7',
+    'Dm7', 'G7', 'C△7', 'A7',
+    'Dm7', 'G7', 'C△7', 'A7'
+  ]
+};
+
 // エクスポートする曲のリスト
 export const songList = [
   autumnLeavesProgression,
-  wishYouWereHereProgression
+  wishYouWereHereProgression,
+  lofi2Progression
 ];

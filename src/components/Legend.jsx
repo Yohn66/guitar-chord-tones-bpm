@@ -2,10 +2,14 @@ import React from 'react';
 import { chordDefinitions, chordColors } from '../data/chords';
 import { getNoteLabel, getChordRomanNotation } from '../utils/musicTheory';
 
-const Legend = ({ chord, onBackToList, onPrevChord, onNextChord, songKey }) => {
+const Legend = ({ chord, onBackToList, onPrevChord, onNextChord, songKey, currentIndex, totalChords }) => {
   const definition = chordDefinitions[chord];
   
   if (!definition) return null;
+  
+  // 最初と最後のコードかどうかをチェック
+  const isFirstChord = currentIndex === 0;
+  const isLastChord = currentIndex === totalChords - 1;
   
   // コードタイプの日本語表記
   const chordTypeJapanese = {
@@ -65,24 +69,34 @@ const Legend = ({ chord, onBackToList, onPrevChord, onNextChord, songKey }) => {
       {/* ナビゲーションボタン */}
       {onBackToList && onPrevChord && onNextChord && (
         <div className="flex justify-between mt-4">
-          <button 
-            onClick={onPrevChord}
-            className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 text-base"
-          >
-            ← 前のコード
-          </button>
+          {!isFirstChord ? (
+            <button 
+              onClick={onPrevChord}
+              className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 text-base"
+            >
+              ← 前のコード
+            </button>
+          ) : (
+            <div className="w-1/4">{/* 空のスペースを維持 */}</div>
+          )}
+          
           <button 
             onClick={onBackToList}
             className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600 text-base mx-1"
           >
             コード一覧に戻る
           </button>
-          <button 
-            onClick={onNextChord}
-            className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 text-base"
-          >
-            次のコード →
-          </button>
+          
+          {!isLastChord ? (
+            <button 
+              onClick={onNextChord}
+              className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 text-base"
+            >
+              次のコード →
+            </button>
+          ) : (
+            <div className="w-1/4">{/* 空のスペースを維持 */}</div>
+          )}
         </div>
       )}
     </div>

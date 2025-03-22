@@ -29,6 +29,11 @@ const BpmTimer = forwardRef(({ onBpmChange, isAutoplay, isCountIn, countInBeats,
   
   // タップでBPMを計測する関数
   const handleTap = () => {
+    // 自動再生中またはカウントイン中はタップを無効化
+    if (isAutoplay || isCountIn) {
+      return;
+    }
+    
     const now = Date.now();
     
     if (!isCalculating) {
@@ -66,6 +71,11 @@ const BpmTimer = forwardRef(({ onBpmChange, isAutoplay, isCountIn, countInBeats,
   
   // タップをリセットする関数
   const resetTap = () => {
+    // 自動再生中またはカウントイン中はリセットを無効化
+    if (isAutoplay || isCountIn) {
+      return;
+    }
+    
     setIsCalculating(false);
     setTapCount(0);
     tapTimesRef.current = [];
@@ -127,10 +137,10 @@ const BpmTimer = forwardRef(({ onBpmChange, isAutoplay, isCountIn, countInBeats,
       clearTimeout(pulseTimeoutRef.current);
     }
     
-    // 100ms後にパルスをオフに（さらに短いフラッシュ効果）
+    // 50ms後にパルスをオフに（より短いフラッシュ効果）
     pulseTimeoutRef.current = setTimeout(() => {
       setPulsing(false);
-    }, 100); // 点滅時間を150msから100msに短縮
+    }, 50); // 点滅時間を100msから50msに短縮
   };
   
   // ビートを開始する関数（改良版）
@@ -181,7 +191,7 @@ const BpmTimer = forwardRef(({ onBpmChange, isAutoplay, isCountIn, countInBeats,
   
   return (
     <div className="p-4 bg-white rounded-lg shadow-md h-full">
-      <h3 className="text-lg font-bold mb-4 text-center">BPM設定</h3>
+      <h3 className="text-xl font-bold mb-4 text-center">BPM設定</h3>
       
       <div className="flex flex-wrap items-center justify-between">
         {/* タップボタンエリア（左） */}
@@ -190,14 +200,17 @@ const BpmTimer = forwardRef(({ onBpmChange, isAutoplay, isCountIn, countInBeats,
           <div className="w-1/2 mb-2">
             <button
               onClick={handleTap}
+              disabled={isAutoplay || isCountIn}
               className={`w-full aspect-square rounded-lg text-white font-bold flex items-center justify-center ${
-                isCalculating 
-                  ? 'bg-red-500 hover:bg-red-600' 
-                  : pulsing 
-                    ? 'bg-yellow-400' // パルス時に黄色フラッシュ
-                    : isBeating 
-                      ? 'bg-blue-600' // 通常時
-                      : 'bg-blue-500 hover:bg-blue-600'
+                isAutoplay || isCountIn
+                  ? 'bg-gray-400 cursor-not-allowed'
+                  : isCalculating 
+                    ? 'bg-red-500 hover:bg-red-600' 
+                    : pulsing 
+                      ? 'bg-yellow-400' // パルス時に黄色フラッシュ
+                      : isBeating 
+                        ? 'bg-blue-600' // 通常時
+                        : 'bg-blue-500 hover:bg-blue-600'
               }`}
             >
               {isCalculating ? (
@@ -211,7 +224,12 @@ const BpmTimer = forwardRef(({ onBpmChange, isAutoplay, isCountIn, countInBeats,
           {/* リセットボタン */}
           <button
             onClick={resetTap}
-            className="text-sm px-3 py-1 bg-gray-300 hover:bg-gray-400 rounded"
+            disabled={isAutoplay || isCountIn}
+            className={`text-sm px-3 py-1 rounded ${
+              isAutoplay || isCountIn
+                ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                : 'bg-gray-300 hover:bg-gray-400'
+            }`}
           >
             リセット
           </button>

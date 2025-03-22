@@ -29,7 +29,13 @@ export const chordDefinitions = {
     bass: 'E', 
     bassInterval: 7 // ルートからの半音数（EはAの5度なので7半音）
   }, // A, C, E with E bass
-  'D': { root: 'D', type: 'major', notes: [0, 4, 7] } // D, F#, A
+  'D': { root: 'D', type: 'major', notes: [0, 4, 7] }, // D, F#, A
+  
+  // lofi2のコード
+  'Dm7': { root: 'D', type: 'minor7', notes: [0, 3, 7, 10] }, // D, F, A, C
+  'G7': { root: 'G', type: 'dominant7', notes: [0, 4, 7, 10] }, // G, B, D, F
+  'C△7': { root: 'C', type: 'major7', notes: [0, 4, 7, 11] }, // C, E, G, B
+  'A7': { root: 'A', type: 'dominant7', notes: [0, 4, 7, 10] }  // A, C#, E, G
 };
 
 // 色設定
