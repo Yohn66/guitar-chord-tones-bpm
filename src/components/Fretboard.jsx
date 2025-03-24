@@ -1,13 +1,13 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { calculateChordPositions, getNoteLabel, normalizeNote, usesFlats } from '../utils/musicTheory';
 import { chordDefinitions, chordColors } from '../data/chords';
 
-const Fretboard = ({ chord, songKey = 'C', displayMode, setDisplayMode }) => {
+const Fretboard = ({ chord, songKey = 'C', displayMode, setDisplayMode, showScale = true, onToggleScale }) => {
   const chordPositions = calculateChordPositions(chord, chordDefinitions, 21);
   const totalFrets = 21;
   
   // フレットマーカーがあるフレット位置
-  const markerFrets = [3, 5, 7, 9, 12, 15, 17, 19, 21];
+  const markerFrets = [3, 5, 7, 9, 15, 17, 19, 21];
   // 12フレットは特別なマーカー
   const specialMarkerFrets = [12];
   
@@ -84,47 +84,96 @@ const Fretboard = ({ chord, songKey = 'C', displayMode, setDisplayMode }) => {
     }
   };
   
+  // 平行長調に変換する関数
+  const getRelativeMajorKey = (key) => {
+    if (!key) return 'C'; // デフォルトはC
+    
+    // キーがマイナーかどうかをチェック
+    const isMinor = key.endsWith('m');
+    
+    if (!isMinor) {
+      return key; // メジャーキーの場合はそのまま返す
+    }
+    
+    // マイナーキーからルート音を取得（末尾の'm'を削除）
+    const root = key.replace(/m$/, '');
+    
+    // 音階配列（シャープ表記）
+    const notes = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
+    
+    // ルート音のインデックスを取得
+    const rootIndex = notes.indexOf(root);
+    
+    if (rootIndex === -1) {
+      console.error(`ルート音 ${root} が見つかりません`);
+      return key;
+    }
+    
+    // 平行長調のルート音は短調のルート音から3半音上
+    // 例: Amの平行長調はC
+    const relativeMajorIndex = (rootIndex + 3) % 12;
+    const relativeMajorRoot = notes[relativeMajorIndex];
+    
+    return relativeMajorRoot;
+  };
+  
+  // 曲のキーのメジャースケールの音を判定する関数
+  const isInKeyScale = (noteName, key) => {
+    if (!key || !noteName) return false;
+    
+    // キーを平行長調に変換（マイナーの場合）
+    const majorKey = getRelativeMajorKey(key);
+    
+    // メジャースケールの半音パターン（T-T-S-T-T-T-S、Tは全音=2半音、Sは半音=1半音）
+    const majorScalePattern = [0, 2, 4, 5, 7, 9, 11];
+    
+    // 音階配列
+    const allNotes = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
+    
+    // ルート音と対象音のインデックスを取得
+    const keyIndex = allNotes.indexOf(normalizeNote(majorKey));
+    const noteIndex = allNotes.indexOf(normalizeNote(noteName));
+    
+    if (keyIndex === -1 || noteIndex === -1) {
+      return false;
+    }
+    
+    // ルート音からの半音数を計算
+    const semitones = (noteIndex - keyIndex + 12) % 12;
+    
+    // スケール内の音かどうかを判定
+    return majorScalePattern.includes(semitones);
+  };
+  
+  // フレットの位置と弦番号から音名を取得する関数
+  const getNoteNameAtPosition = (string, fret) => {
+    // 各弦の開放弦の音
+    const openStrings = ['E', 'B', 'G', 'D', 'A', 'E'];
+    // 音階配列
+    const allNotes = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
+    
+    // 弦のインデックス（0始まり）
+    const stringIndex = string - 1;
+    
+    if (stringIndex < 0 || stringIndex >= 6) {
+      return null;
+    }
+    
+    // 開放弦の音
+    const openNote = openStrings[stringIndex];
+    const openNoteIndex = allNotes.indexOf(openNote);
+    
+    if (openNoteIndex === -1) {
+      return null;
+    }
+    
+    // フレット位置での音名を計算
+    const noteIndex = (openNoteIndex + fret) % 12;
+    return allNotes[noteIndex];
+  };
+  
   return (
     <div className="w-full bg-white p-4 rounded-lg shadow mx-auto">
-      {/* 表示モード切替ボタン */}
-      <div className="flex justify-center mb-4">
-        <div className="inline-flex rounded-md shadow-sm" role="group">
-          <button
-            type="button"
-            onClick={() => handleModeChange('position')}
-            className={`px-4 py-2 text-sm font-medium rounded-l-lg ${
-              displayMode === 'position'
-                ? 'bg-blue-600 text-white'
-                : 'bg-white text-gray-700 hover:bg-gray-100'
-            } border border-gray-200`}
-          >
-            数字
-          </button>
-          <button
-            type="button"
-            onClick={() => handleModeChange('note')}
-            className={`px-4 py-2 text-sm font-medium ${
-              displayMode === 'note'
-                ? 'bg-blue-600 text-white'
-                : 'bg-white text-gray-700 hover:bg-gray-100'
-            } border-t border-b border-gray-200`}
-          >
-            音名
-          </button>
-          <button
-            type="button"
-            onClick={() => handleModeChange('degree')}
-            className={`px-4 py-2 text-sm font-medium rounded-r-lg ${
-              displayMode === 'degree'
-                ? 'bg-blue-600 text-white'
-                : 'bg-white text-gray-700 hover:bg-gray-100'
-            } border border-gray-200`}
-          >
-            度数
-          </button>
-        </div>
-      </div>
-      
       <div className="flex justify-center">
         <div className="w-full">
           {/* 弦表示 */}
@@ -156,16 +205,25 @@ const Fretboard = ({ chord, songKey = 'C', displayMode, setDisplayMode }) => {
                       pos => pos.string === string && pos.fret === 0
                     );
                     
+                    // 0フレットの音名を取得
+                    const noteName = getNoteNameAtPosition(string, 0);
+                    // スケール内の音かどうかを判定
+                    const isInScale = showScale && noteName && songKey && isInKeyScale(noteName, songKey);
+                    
                     return (
                       <div
                         key={string}
                         className="h-10 flex items-center justify-center border-b border-gray-400"
+                        style={{
+                          backgroundColor: isInScale ? 'rgba(251, 191, 36, 0.2)' : ''
+                        }}
                       >
                         {noteAtPosition && (
                           <div
-                            className="w-8 h-8 rounded-full flex items-center justify-center text-white font-bold"
+                            className="w-8 h-8 rounded-full flex items-center justify-center text-white font-bold text-sm"
                             style={{ 
-                              backgroundColor: getNoteColor(noteAtPosition.position, noteAtPosition.isBassNote) 
+                              backgroundColor: getNoteColor(noteAtPosition.position, noteAtPosition.isBassNote),
+                              textShadow: '0px 0px 1px rgba(0, 0, 0, 0.8)'
                             }}
                           >
                             {getNoteText(noteAtPosition)}
@@ -182,12 +240,18 @@ const Fretboard = ({ chord, songKey = 'C', displayMode, setDisplayMode }) => {
                   const isMarker = markerFrets.includes(fret);
                   const isSpecialMarker = specialMarkerFrets.includes(fret);
                   
+                  // 12フレットは少し濃い色、他のマーカーフレットは薄い色
+                  let bgColorClass = 'bg-white';
+                  if (isSpecialMarker) {
+                    bgColorClass = 'bg-gray-100';
+                  } else if (isMarker) {
+                    bgColorClass = 'bg-gray-50';
+                  }
+                  
                   return (
                     <div 
                       key={fret}
-                      className={`border-r border-gray-400 ${
-                        isSpecialMarker ? 'bg-amber-50' : isMarker ? 'bg-gray-50' : ''
-                      }`}
+                      className={`border-r border-gray-400 ${bgColorClass}`}
                       style={getFretWidthStyle(fret)}
                     >
                       {[1, 2, 3, 4, 5, 6].map(string => {
@@ -195,16 +259,25 @@ const Fretboard = ({ chord, songKey = 'C', displayMode, setDisplayMode }) => {
                           pos => pos.string === string && pos.fret === fret
                         );
                         
+                        // フレットの音名を取得
+                        const noteName = getNoteNameAtPosition(string, fret);
+                        // スケール内の音かどうかを判定
+                        const isInScale = showScale && noteName && songKey && isInKeyScale(noteName, songKey);
+                        
                         return (
                           <div
                             key={string}
                             className="h-10 flex items-center justify-center border-b border-gray-400"
+                            style={{
+                              backgroundColor: isInScale ? 'rgba(251, 191, 36, 0.2)' : ''
+                            }}
                           >
                             {noteAtPosition && (
                               <div
-                                className="w-8 h-8 rounded-full flex items-center justify-center text-white font-bold text-xs sm:text-sm"
+                                className="w-8 h-8 rounded-full flex items-center justify-center text-white font-bold text-sm"
                                 style={{ 
-                                  backgroundColor: getNoteColor(noteAtPosition.position, noteAtPosition.isBassNote) 
+                                  backgroundColor: getNoteColor(noteAtPosition.position, noteAtPosition.isBassNote),
+                                  textShadow: '0px 0px 1px rgba(0, 0, 0, 0.8)'
                                 }}
                               >
                                 {getNoteText(noteAtPosition)}

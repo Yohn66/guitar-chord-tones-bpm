@@ -37,18 +37,8 @@ const ChordDetailView = ({
   
   return (
     <div className="flex flex-col items-center p-4 w-full">
-      {/* 最初のコードに戻るボタン - 上部に配置して独立させる */}
-      <div className="w-full mb-2 text-left">
-        <button
-          onClick={onFirstChord}
-          className="px-3 py-4 bg-gray-500 text-white rounded hover:bg-gray-600 text-lg"
-        >
-          最初のコードへ
-        </button>
-      </div>
-      
-      {/* コード表示部分 - 元の位置と同じになるようにする */}
-      <div className="w-full flex justify-between items-center mb-2">
+      {/* コード表示部分 */}
+      <div className="w-full flex justify-between items-center mb-4">
         {/* 前のコード - 最初のコードの場合は表示しない */}
         <div className="w-1/3 text-right pr-4">
           {prevChord && (

@@ -15,7 +15,9 @@ function App() {
   const [currentIndex, setCurrentIndex] = useState(0);
   
   // 表示モード状態の追加
-  const [displayMode, setDisplayMode] = useState('position'); // 'position', 'note', 'degree'
+  const [displayMode, setDisplayMode] = useState('note'); // 初期値を'note'に変更
+  // スケール表示のオン/オフ
+  const [showScale, setShowScale] = useState(false); // 初期値をfalseに変更
   
   // BPM関連の状態変数
   const [bpm, setBpm] = useState(120);
@@ -86,6 +88,11 @@ function App() {
   const handleFirstChord = () => {
     setCurrentIndex(0);
     setCurrentChord(progression[0]);
+  };
+  
+  // スケール表示のトグル
+  const handleToggleScale = () => {
+    setShowScale(prev => !prev);
   };
   
   const handleBackToList = () => {
@@ -237,11 +244,29 @@ function App() {
     };
   }, []);
   
+  // ヘッダーのタイトルを取得
+  const getHeaderTitle = () => {
+    if (view === 'detail' && currentSong) {
+      return `${currentSong.title} - ${currentSong.artist} - キー: ${currentSong.key}`;
+    } else {
+      return 'ギター用コードトーン表示アプリ';
+    }
+  };
+  
+  // フッターのテキストを取得
+  const getFooterText = () => {
+    if (view === 'detail' && currentSong) {
+      return `${currentSong.title} - ${currentSong.artist} - キー: ${currentSong.key}`;
+    } else {
+      return 'ギターコード進行アプリ';
+    }
+  };
+  
   return (
     <div className="min-h-screen bg-gray-100">
       <header className="bg-blue-600 text-white p-4">
         <div className="container mx-auto flex justify-between items-center">
-          <h1 className="text-2xl font-bold">ギター用コードトーン表示アプリ</h1>
+          <h1 className="text-2xl font-bold">{getHeaderTitle()}</h1>
           
           {/* 曲選択ボタン */}
           {view !== 'songSelection' && (
@@ -273,13 +298,81 @@ function App() {
                 currentIndex={currentIndex}
                 onPrevChord={handlePrevChord}
                 onNextChord={handleNextChord}
-                onFirstChord={handleFirstChord}
               />
+              
+              {/* コントロールボタン - 固定幅を使用して配置を安定させる */}
+              <div className="flex items-center mb-4">
+                {/* 左端: 最初のコードへボタン - 固定幅 */}
+                <div className="w-1/3 flex justify-start">
+                  <button
+                    onClick={handleFirstChord}
+                    className="px-4 py-2 text-sm font-medium rounded-lg bg-gray-500 text-white hover:bg-gray-600"
+                  >
+                    最初のコードへ
+                  </button>
+                </div>
+                
+                {/* 中央: 表示モード切替ボタン - 固定幅、中央揃え */}
+                <div className="w-1/3 flex justify-center">
+                  <div className="inline-flex rounded-md shadow-sm" role="group">
+                    <button
+                      type="button"
+                      onClick={() => setDisplayMode('position')}
+                      className={`px-4 py-2 text-sm font-medium rounded-l-lg ${
+                        displayMode === 'position'
+                          ? 'bg-blue-600 text-white'
+                          : 'bg-white text-gray-700 hover:bg-gray-100'
+                      } border border-gray-200`}
+                    >
+                      数字
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setDisplayMode('note')}
+                      className={`px-4 py-2 text-sm font-medium ${
+                        displayMode === 'note'
+                          ? 'bg-blue-600 text-white'
+                          : 'bg-white text-gray-700 hover:bg-gray-100'
+                      } border-t border-b border-gray-200`}
+                    >
+                      音名
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setDisplayMode('degree')}
+                      className={`px-4 py-2 text-sm font-medium rounded-r-lg ${
+                        displayMode === 'degree'
+                          ? 'bg-blue-600 text-white'
+                          : 'bg-white text-gray-700 hover:bg-gray-100'
+                      } border border-gray-200`}
+                    >
+                      度数
+                    </button>
+                  </div>
+                </div>
+                
+                {/* 右端: スケール表示トグルボタン - 固定幅 */}
+                <div className="w-1/3 flex justify-end">
+                  <button
+                    onClick={handleToggleScale}
+                    className={`px-4 py-2 text-sm font-medium rounded-lg min-w-[130px] text-center ${
+                      showScale
+                        ? 'bg-amber-500 text-white hover:bg-amber-600'
+                        : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-200'
+                    }`}
+                  >
+                    スケール表示 {showScale ? 'ON' : 'OFF'}
+                  </button>
+                </div>
+              </div>
+              
               <Fretboard 
                 chord={currentChord} 
                 songKey={currentSong.key}
                 displayMode={displayMode}
                 setDisplayMode={setDisplayMode}
+                showScale={showScale}
+                onToggleScale={handleToggleScale}
               />
             </div>
             
@@ -305,6 +398,8 @@ function App() {
                   onBackToList={handleBackToList}
                   onPrevChord={handlePrevChord}
                   onNextChord={handleNextChord}
+                  currentIndex={currentIndex}
+                  totalChords={progression.length}
                 />
               </div>
             </div>
@@ -323,10 +418,7 @@ function App() {
       </main>
       
       <footer className="bg-gray-200 p-4 text-center text-gray-600">
-        <p>
-          ギターコード進行アプリ
-          {currentSong && ` - ${currentSong.title} - キー: ${currentSong.key}`}
-        </p>
+        <p>{getFooterText()}</p>
       </footer>
     </div>
   );
