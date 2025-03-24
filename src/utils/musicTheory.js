@@ -1,21 +1,23 @@
+// musicTheory.js
+
 // 音度のラベルを取得する関数
 export const getNoteLabel = (semitone, isBassNote = false) => {
   // ベース音の場合は特別な表記を追加
   const bassText = isBassNote ? '（ベース音）' : '';
   
   switch (semitone) {
-    case 0: return `ルート${bassText}`;
-    case 1: return `♭9th${bassText}`;
-    case 2: return `2度/9th${bassText}`;
-    case 3: return `短3度${bassText}`;
+    case 0: return `1度${bassText}`;
+    case 1: return `♭9${bassText}`;
+    case 2: return `9th${bassText}`;
+    case 3: return `♭3${bassText}`;
     case 4: return `3度${bassText}`;
-    case 5: return `4度/11th${bassText}`;
+    case 5: return `4度${bassText}`;
     case 6: return `♭5${bassText}`;
     case 7: return `5度${bassText}`;
     case 8: return `♭6${bassText}`;
-    case 9: return `6度/13th${bassText}`;
-    case 10: return `短7度/m7${bassText}`;
-    case 11: return `長7度/△7${bassText}`;
+    case 9: return `6度${bassText}`;
+    case 10: return `m7${bassText}`;
+    case 11: return `M7${bassText}`;
     default: return `${semitone}${bassText}`;
   }
 };

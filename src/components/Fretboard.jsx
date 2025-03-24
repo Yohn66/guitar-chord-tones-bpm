@@ -1,8 +1,8 @@
 import React from 'react';
-import { calculateChordPositions } from '../utils/musicTheory';
+import { calculateChordPositions, getNoteLabel, normalizeNote, usesFlats } from '../utils/musicTheory';
 import { chordDefinitions, chordColors } from '../data/chords';
 
-const Fretboard = ({ chord }) => {
+const Fretboard = ({ chord, songKey = 'C', displayMode, setDisplayMode }) => {
   const chordPositions = calculateChordPositions(chord, chordDefinitions, 21);
   const totalFrets = 21;
   
@@ -48,8 +48,83 @@ const Fretboard = ({ chord }) => {
     return isBassNote ? chordColors.bassNote : chordColors.default[notePosition - 1];
   };
   
+  // 表示モードに基づいてノートの表示テキストを取得する関数
+  const getNoteText = (notePosition) => {
+    if (!notePosition) return '';
+    
+    // キーに基づくフラット/シャープ表記の使用
+    const useFlats = songKey ? usesFlats(songKey) : false;
+    
+    switch (displayMode) {
+      case 'position':
+        // 数字（ポジション）表示 - 現状のまま
+        return notePosition.position;
+      
+      case 'note':
+        // 音名表示 - キーに基づいてフラット/シャープを切り替え
+        const normalizedNote = normalizeNote(
+          notePosition.noteName, 
+          useFlats
+        );
+        return normalizedNote;
+      
+      case 'degree':
+        // 度数表示
+        return getNoteLabel(notePosition.note);
+      
+      default:
+        return notePosition.position;
+    }
+  };
+  
+  // 表示モードを切り替える関数
+  const handleModeChange = (mode) => {
+    if (setDisplayMode) {
+      setDisplayMode(mode);
+    }
+  };
+  
   return (
     <div className="w-full bg-white p-4 rounded-lg shadow mx-auto">
+      {/* 表示モード切替ボタン */}
+      <div className="flex justify-center mb-4">
+        <div className="inline-flex rounded-md shadow-sm" role="group">
+          <button
+            type="button"
+            onClick={() => handleModeChange('position')}
+            className={`px-4 py-2 text-sm font-medium rounded-l-lg ${
+              displayMode === 'position'
+                ? 'bg-blue-600 text-white'
+                : 'bg-white text-gray-700 hover:bg-gray-100'
+            } border border-gray-200`}
+          >
+            数字
+          </button>
+          <button
+            type="button"
+            onClick={() => handleModeChange('note')}
+            className={`px-4 py-2 text-sm font-medium ${
+              displayMode === 'note'
+                ? 'bg-blue-600 text-white'
+                : 'bg-white text-gray-700 hover:bg-gray-100'
+            } border-t border-b border-gray-200`}
+          >
+            音名
+          </button>
+          <button
+            type="button"
+            onClick={() => handleModeChange('degree')}
+            className={`px-4 py-2 text-sm font-medium rounded-r-lg ${
+              displayMode === 'degree'
+                ? 'bg-blue-600 text-white'
+                : 'bg-white text-gray-700 hover:bg-gray-100'
+            } border border-gray-200`}
+          >
+            度数
+          </button>
+        </div>
+      </div>
+      
       <div className="flex justify-center">
         <div className="w-full">
           {/* 弦表示 */}
@@ -93,7 +168,7 @@ const Fretboard = ({ chord }) => {
                               backgroundColor: getNoteColor(noteAtPosition.position, noteAtPosition.isBassNote) 
                             }}
                           >
-                            {noteAtPosition.note}
+                            {getNoteText(noteAtPosition)}
                           </div>
                         )}
                       </div>
@@ -132,7 +207,7 @@ const Fretboard = ({ chord }) => {
                                   backgroundColor: getNoteColor(noteAtPosition.position, noteAtPosition.isBassNote) 
                                 }}
                               >
-                                {noteAtPosition.note}
+                                {getNoteText(noteAtPosition)}
                               </div>
                             )}
                           </div>

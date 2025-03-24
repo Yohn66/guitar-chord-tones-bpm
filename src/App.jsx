@@ -14,6 +14,9 @@ function App() {
   const [currentChord, setCurrentChord] = useState('');
   const [currentIndex, setCurrentIndex] = useState(0);
   
+  // 表示モード状態の追加
+  const [displayMode, setDisplayMode] = useState('position'); // 'position', 'note', 'degree'
+  
   // BPM関連の状態変数
   const [bpm, setBpm] = useState(120);
   const [isAutoplay, setIsAutoplay] = useState(false);
@@ -68,21 +71,15 @@ function App() {
   };
   
   const handlePrevChord = () => {
-    // 最初のコードの時は前に戻らない
-    if (currentIndex > 0) {
-      const newIndex = currentIndex - 1;
-      setCurrentIndex(newIndex);
-      setCurrentChord(progression[newIndex]);
-    }
+    const newIndex = (currentIndex - 1 + progression.length) % progression.length;
+    setCurrentIndex(newIndex);
+    setCurrentChord(progression[newIndex]);
   };
   
   const handleNextChord = () => {
-    // 最後のコードの時は次に進まない
-    if (currentIndex < progression.length - 1) {
-      const newIndex = currentIndex + 1;
-      setCurrentIndex(newIndex);
-      setCurrentChord(progression[newIndex]);
-    }
+    const newIndex = (currentIndex + 1) % progression.length;
+    setCurrentIndex(newIndex);
+    setCurrentChord(progression[newIndex]);
   };
   
   // 最初のコードに戻る処理
@@ -186,10 +183,10 @@ function App() {
       console.log("コードを次に進めます");
       // Stateを直接更新するため、セッターを使用
       setCurrentIndex(prevIndex => {
-        const newIndex = prevIndex + 1;
+        const newIndex = (prevIndex + 1) % progression.length;
         
         // 最後のコードに達したかチェック
-        if (newIndex >= progression.length) {
+        if (newIndex === 0) {
           // 最後まで来たので停止
           console.log("最後のコードまで到達しました。自動再生を停止します。");
           stopAutoplay();
@@ -244,12 +241,7 @@ function App() {
     <div className="min-h-screen bg-gray-100">
       <header className="bg-blue-600 text-white p-4">
         <div className="container mx-auto flex justify-between items-center">
-          {/* ヘッダータイトル - 曲が選択されている場合は曲情報を表示 */}
-          {currentSong ? (
-            <h1 className="text-2xl font-bold">{currentSong.title} - {currentSong.artist} (Key: {currentSong.key})</h1>
-          ) : (
-            <h1 className="text-2xl font-bold">ギター用コードトーン表示アプリ</h1>
-          )}
+          <h1 className="text-2xl font-bold">ギター用コードトーン表示アプリ</h1>
           
           {/* 曲選択ボタン */}
           {view !== 'songSelection' && (
@@ -283,7 +275,12 @@ function App() {
                 onNextChord={handleNextChord}
                 onFirstChord={handleFirstChord}
               />
-              <Fretboard chord={currentChord} />
+              <Fretboard 
+                chord={currentChord} 
+                songKey={currentSong.key}
+                displayMode={displayMode}
+                setDisplayMode={setDisplayMode}
+              />
             </div>
             
             {/* 下部のコントロールパネル - グリッドレイアウト */}
@@ -308,8 +305,6 @@ function App() {
                   onBackToList={handleBackToList}
                   onPrevChord={handlePrevChord}
                   onNextChord={handleNextChord}
-                  currentIndex={currentIndex}
-                  totalChords={progression.length}
                 />
               </div>
             </div>
