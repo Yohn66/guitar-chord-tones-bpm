@@ -15,7 +15,7 @@ function App() {
   const [currentIndex, setCurrentIndex] = useState(0);
   
   // 表示モード状態の追加
-  const [displayMode, setDisplayMode] = useState('note'); // 初期値を'note'に変更
+  const [displayMode, setDisplayMode] = useState('position'); // 初期値を'position'に変更
   // スケール表示のオン/オフ
   const [showScale, setShowScale] = useState(false); // 初期値をfalseに変更
   

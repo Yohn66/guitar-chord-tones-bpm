@@ -57,8 +57,8 @@ const Fretboard = ({ chord, songKey = 'C', displayMode, setDisplayMode, showScal
     
     switch (displayMode) {
       case 'position':
-        // 数字（ポジション）表示 - 現状のまま
-        return notePosition.position;
+        // 修正1: 数字表示を音度（半音数）に変更
+        return notePosition.note;
       
       case 'note':
         // 音名表示 - キーに基づいてフラット/シャープを切り替え
@@ -70,17 +70,10 @@ const Fretboard = ({ chord, songKey = 'C', displayMode, setDisplayMode, showScal
       
       case 'degree':
         // 度数表示
-        return getNoteLabel(notePosition.note);
+        return getNoteLabel(notePosition.note).replace(/（ベース音）$/, '');
       
       default:
-        return notePosition.position;
-    }
-  };
-  
-  // 表示モードを切り替える関数
-  const handleModeChange = (mode) => {
-    if (setDisplayMode) {
-      setDisplayMode(mode);
+        return notePosition.note; // 修正1: デフォルトも音度（半音数）に変更
     }
   };
   
@@ -172,6 +165,9 @@ const Fretboard = ({ chord, songKey = 'C', displayMode, setDisplayMode, showScal
     return allNotes[noteIndex];
   };
   
+  // スケール音のための統一された背景色 - 修正2
+  const scaleHighlightColor = 'rgba(251, 191, 36, 0.2)';
+  
   return (
     <div className="w-full bg-white p-4 rounded-lg shadow mx-auto">
       <div className="flex justify-center">
@@ -215,7 +211,8 @@ const Fretboard = ({ chord, songKey = 'C', displayMode, setDisplayMode, showScal
                         key={string}
                         className="h-10 flex items-center justify-center border-b border-gray-400"
                         style={{
-                          backgroundColor: isInScale ? 'rgba(251, 191, 36, 0.2)' : ''
+                          // 修正2: スケール音の背景色を統一
+                          backgroundColor: isInScale ? scaleHighlightColor : ''
                         }}
                       >
                         {noteAtPosition && (
@@ -269,7 +266,8 @@ const Fretboard = ({ chord, songKey = 'C', displayMode, setDisplayMode, showScal
                             key={string}
                             className="h-10 flex items-center justify-center border-b border-gray-400"
                             style={{
-                              backgroundColor: isInScale ? 'rgba(251, 191, 36, 0.2)' : ''
+                              // 修正2: スケール音の背景色を統一
+                              backgroundColor: isInScale ? scaleHighlightColor : ''
                             }}
                           >
                             {noteAtPosition && (
