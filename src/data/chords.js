@@ -35,7 +35,11 @@ export const chordDefinitions = {
   'Dm7': { root: 'D', type: 'minor7', notes: [0, 3, 7, 10] }, // D, F, A, C
   'G7': { root: 'G', type: 'dominant7', notes: [0, 4, 7, 10] }, // G, B, D, F
   'C△7': { root: 'C', type: 'major7', notes: [0, 4, 7, 11] }, // C, E, G, B
-  'A7': { root: 'A', type: 'dominant7', notes: [0, 4, 7, 10] }  // A, C#, E, G
+  'A7': { root: 'A', type: 'dominant7', notes: [0, 4, 7, 10] },  // A, C#, E, G
+  
+  // ゆれるのコード
+  'A♭△7': { root: 'Ab', type: 'major7', notes: [0, 4, 7, 11] }, // Ab, C, Eb, G
+  'B♭': { root: 'Bb', type: 'major', notes: [0, 4, 7] }, // Bb, D, F
 };
 
 // 色設定

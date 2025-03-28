@@ -147,9 +147,36 @@ export const lofi2Progression = {
   ]
 };
 
+// ゆれるのコード進行
+export const yureruProgression = {
+  id: 'yureru',
+  title: "ゆれる",
+  artist: "EVISBEATS feat.田我流",
+  key: "Eb",  // キー情報
+  sections: [
+    {
+      name: "Aメロ",
+      chords: [
+        'A♭△7', 'E♭△7', 'B♭', 'Cm7',
+        'A♭△7', 'E♭△7', 'B♭', 'Cm7',
+        'A♭△7', 'E♭△7', 'B♭', 'Cm7',
+        'A♭△7', 'E♭△7', 'B♭', 'Cm7'
+      ]
+    }
+  ],
+  // 全てのコードを配列として平坦化
+  chords: [
+    'A♭△7', 'E♭△7', 'B♭', 'Cm7',
+    'A♭△7', 'E♭△7', 'B♭', 'Cm7',
+    'A♭△7', 'E♭△7', 'B♭', 'Cm7',
+    'A♭△7', 'E♭△7', 'B♭', 'Cm7'
+  ]
+};
+
 // エクスポートする曲のリスト
 export const songList = [
   autumnLeavesProgression,
   wishYouWereHereProgression,
-  lofi2Progression
+  lofi2Progression,
+  yureruProgression
 ];
