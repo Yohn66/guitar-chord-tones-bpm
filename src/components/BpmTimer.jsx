@@ -185,6 +185,17 @@ const BpmTimer = forwardRef(({ onBpmChange, isAutoplay, isCountIn, countInBeats,
     }
   };
   
+  // 自動再生中はビートを表示するためのeffect
+  useEffect(() => {
+    if (isAutoplay && !isBeating) {
+      // 自動再生中で、まだビートが開始されていない場合、ビートを開始
+      startBeat();
+    } else if (!isAutoplay && !isCountIn && isBeating) {
+      // 自動再生が停止され、カウントインもなく、ビートが動いている場合、ビートを停止
+      stopBeat();
+    }
+  }, [isAutoplay, isCountIn, isBeating]);
+  
   // コンポーネントがアンマウントされるときにタイマーをクリア
   useEffect(() => {
     return () => {
