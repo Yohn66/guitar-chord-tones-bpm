@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, forwardRef, useImperativeHandle } from 'react';
 
-const BpmTimer = forwardRef(({ onBpmChange, isAutoplay, isCountIn, countInBeats, onToggleAutoplay }, ref) => {
+const BpmTimer = forwardRef(({ onBpmChange, isAutoplay, isCountIn, countInBeats, onToggleAutoplay, onToggleCountIn, enableCountIn }, ref) => {
   const [bpm, setBpm] = useState(120); // デフォルトのBPM
   const [isCalculating, setIsCalculating] = useState(false);
   const [tapCount, setTapCount] = useState(0);
@@ -174,6 +174,17 @@ const BpmTimer = forwardRef(({ onBpmChange, isAutoplay, isCountIn, countInBeats,
     setPulsing(false);
   };
   
+  // 再生/停止ボタンクリック時の処理
+  const handlePlayClick = () => {
+    if (isAutoplay || isCountIn) {
+      // 再生中なら停止
+      onToggleAutoplay('stop');
+    } else {
+      // 停止中なら再生開始
+      onToggleAutoplay('play');
+    }
+  };
+  
   // コンポーネントがアンマウントされるときにタイマーをクリア
   useEffect(() => {
     return () => {
@@ -203,7 +214,7 @@ const BpmTimer = forwardRef(({ onBpmChange, isAutoplay, isCountIn, countInBeats,
               disabled={isAutoplay || isCountIn}
               className={`w-full aspect-square rounded-lg text-white font-bold flex items-center justify-center ${
                 isAutoplay || isCountIn
-                  ? 'bg-gray-400 cursor-not-allowed'
+                  ? (pulsing ? 'bg-yellow-400' : 'bg-gray-400') // 自動再生中も点滅させる
                   : isCalculating 
                     ? 'bg-red-500 hover:bg-red-600' 
                     : pulsing 
@@ -265,21 +276,64 @@ const BpmTimer = forwardRef(({ onBpmChange, isAutoplay, isCountIn, countInBeats,
         曲に合わせてタップすると、テンポ(BPM)を自動計算します
       </p>
       
-      {/* 自動再生ボタン */}
-      <div className="mt-4 flex justify-center">
-        <button
-          onClick={onToggleAutoplay}
-          className={`px-8 py-3 rounded-lg text-white font-bold text-lg ${
-            isAutoplay || isCountIn ? 'bg-red-500 hover:bg-red-600' : 'bg-green-500 hover:bg-green-600'
-          }`}
-        >
-          {isCountIn 
-            ? `${countInBeats}` 
-            : isAutoplay 
-              ? '自動再生停止' 
-              : '自動再生開始'
-          }
-        </button>
+      {/* 再生コントロールエリア */}
+      <div className="mt-4 flex flex-col items-center justify-center space-y-3">
+        {/* 再生コントロールボタン */}
+        <div className="flex space-x-4 items-center">
+          {/* 再生/停止ボタン */}
+          <button 
+            onClick={handlePlayClick}
+            className={`w-12 h-12 rounded-full flex items-center justify-center text-white ${
+              isCountIn ? 'bg-amber-500' : isAutoplay ? 'bg-red-500' : 'bg-green-500'
+            }`}
+            aria-label={isAutoplay || isCountIn ? "停止" : "再生"}
+          >
+            {isCountIn ? (
+              <span className="text-xl font-bold">{countInBeats}</span>
+            ) : isAutoplay ? (
+              /* 停止アイコン（四角） */
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-6 h-6">
+                <rect x="6" y="6" width="12" height="12" />
+              </svg>
+            ) : (
+              /* 再生アイコン（三角形） */
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-6 h-6">
+                <path d="M8 5v14l11-7z" />
+              </svg>
+            )}
+          </button>
+        </div>
+        
+        {/* カウントイントグルスイッチ */}
+        <div className="flex items-center space-x-2">
+          <span className="text-sm text-gray-700">カウントイン</span>
+          <label className="inline-flex items-center cursor-pointer">
+            <input 
+              type="checkbox" 
+              className="sr-only peer"
+              checked={enableCountIn}
+              onChange={() => onToggleCountIn && onToggleCountIn()}
+              disabled={isAutoplay || isCountIn}
+            />
+            <div className={`relative w-11 h-6 rounded-full peer
+              ${enableCountIn ? 'bg-blue-600' : 'bg-gray-200'}
+              ${isAutoplay || isCountIn ? 'opacity-50 cursor-not-allowed' : ''}
+              peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-blue-300
+              after:content-[''] 
+              after:absolute 
+              after:top-[2px] 
+              after:start-[2px] 
+              after:bg-white 
+              after:border-gray-300 
+              after:border 
+              after:rounded-full 
+              after:h-5 
+              after:w-5 
+              after:transition-all
+              ${enableCountIn ? 'after:translate-x-full' : ''}
+            `}></div>
+          </label>
+        </div>
       </div>
     </div>
   );

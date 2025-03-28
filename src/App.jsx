@@ -24,6 +24,9 @@ function App() {
   const [isAutoplay, setIsAutoplay] = useState(false);
   const [isCountIn, setIsCountIn] = useState(false);
   const [countInBeats, setCountInBeats] = useState(4);
+  // カウントイン設定と一時停止状態の追加
+  const [enableCountIn, setEnableCountIn] = useState(true); // デフォルトでカウントインを有効にする
+  const [isPaused, setIsPaused] = useState(false); // 一時停止状態を管理
   
   // タイマー用のRef
   const timerRef = useRef(null);
@@ -111,6 +114,11 @@ function App() {
     }
   };
   
+  // カウントイン設定のトグル
+  const handleToggleCountIn = () => {
+    setEnableCountIn(prev => !prev);
+  };
+  
   // ビートを開始する関数（4分音符のリズム表示用）
   const startBeat = () => {
     stopBeat(); // 既存のビートがあれば停止
@@ -184,6 +192,7 @@ function App() {
     const barInterval = 4 * (60 / bpm) * 1000;
     
     setIsAutoplay(true);
+    setIsPaused(false);
     
     // コード切り替えインターバルを設定
     timerRef.current = setInterval(() => {
@@ -207,9 +216,29 @@ function App() {
     }, barInterval);
   };
   
+  // 自動再生の一時停止
+  const pauseAutoplay = () => {
+    if (timerRef.current) {
+      clearInterval(timerRef.current);
+      timerRef.current = null;
+    }
+    setIsPaused(true);
+    stopBeat();
+  };
+  
+  // 自動再生の再開
+  const resumeAutoplay = () => {
+    startChordAutoplay();
+    setIsPaused(false);
+  };
+  
   // 自動再生の開始
   const startAutoplay = () => {
-    startCountIn();
+    if (enableCountIn) {
+      startCountIn();
+    } else {
+      startChordAutoplay();
+    }
   };
   
   // 自動再生の停止
@@ -220,15 +249,26 @@ function App() {
     }
     setIsAutoplay(false);
     setIsCountIn(false);
+    setIsPaused(false);
     stopBeat();
   };
   
-  // 自動再生の切り替え
-  const toggleAutoplay = () => {
-    if (isAutoplay || isCountIn) {
-      stopAutoplay();
-    } else {
-      startAutoplay();
+  // 自動再生のアクション処理（再生/一時停止/停止/再開）
+  const handleAutoplayAction = (action) => {
+    switch (action) {
+      case 'play':
+        startAutoplay();
+        break;
+      case 'pause':
+        pauseAutoplay();
+        break;
+      case 'resume':
+        resumeAutoplay();
+        break;
+      case 'stop':
+      default:
+        stopAutoplay();
+        break;
     }
   };
   
@@ -298,6 +338,7 @@ function App() {
                 currentIndex={currentIndex}
                 onPrevChord={handlePrevChord}
                 onNextChord={handleNextChord}
+                onFirstChord={handleFirstChord}
               />
               
               {/* コントロールボタン - 固定幅を使用して配置を安定させる */}
@@ -381,12 +422,14 @@ function App() {
               {/* 左側: BPMタイマー */}
               <div>
                 <BpmTimer 
-                  onBpmChange={handleBpmChange} 
-                  ref={bpmTimerRef}
-                  isAutoplay={isAutoplay}
-                  isCountIn={isCountIn}
-                  countInBeats={countInBeats}
-                  onToggleAutoplay={toggleAutoplay}
+                    onBpmChange={handleBpmChange} 
+                    ref={bpmTimerRef}
+                    isAutoplay={isAutoplay}
+                    isCountIn={isCountIn}
+                    countInBeats={countInBeats}
+                    onToggleAutoplay={handleAutoplayAction}
+                    onToggleCountIn={handleToggleCountIn}
+                    enableCountIn={enableCountIn}
                 />
               </div>
               
