@@ -5,6 +5,7 @@ import BpmTimer from './components/BpmTimer';
 import Fretboard from './components/Fretboard';
 import Legend from './components/Legend';
 import SongSelectionView from './components/SongSelectionView';
+import PlaybackView from './components/PlaybackView'; // 新しいコンポーネント
 import { songList } from './data/progressions';
 
 function App() {
@@ -19,6 +20,13 @@ function App() {
   // スケール表示のオン/オフ
   const [showScale, setShowScale] = useState(false); // 初期値をfalseに変更
   
+  // 画面モード（通常 or 再生）
+  const [screenMode, setScreenMode] = useState('normal'); // 'normal' または 'playback'
+  
+  // 次のコードの情報
+  const [nextChordIndex, setNextChordIndex] = useState(1);
+  const [nextChord, setNextChord] = useState('');
+  
   // BPM関連の状態変数
   const [bpm, setBpm] = useState(120);
   const [isAutoplay, setIsAutoplay] = useState(false);
@@ -27,6 +35,9 @@ function App() {
   // カウントイン設定と一時停止状態の追加
   const [enableCountIn, setEnableCountIn] = useState(true); // デフォルトでカウントインを有効にする
   const [isPaused, setIsPaused] = useState(false); // 一時停止状態を管理
+  
+  // アニメーション状態
+  const [isTransitioning, setIsTransitioning] = useState(false);
   
   // タイマー用のRef
   const timerRef = useRef(null);
@@ -41,9 +52,17 @@ function App() {
       // 曲の最初のコードを選択
       if (song.chords && song.chords.length > 0) {
         setCurrentChord(song.chords[0]);
+        // 次のコードも設定（存在する場合）
+        if (song.chords.length > 1) {
+          setNextChord(song.chords[1]);
+        } else {
+          setNextChord('');
+        }
       }
       setCurrentIndex(0);
+      setNextChordIndex(1);
       setView('list');
+      setScreenMode('normal'); // 画面モードを通常に戻す
     }
   };
   
@@ -53,6 +72,7 @@ function App() {
       stopAutoplay();
     }
     setView('songSelection');
+    setScreenMode('normal'); // 画面モードを通常に戻す
   };
   
   // コード進行（全てのコードを連結した配列）
@@ -69,9 +89,33 @@ function App() {
   
   const progression = getAllChords();
   
+  // 画面モードの切り替え
+  const handleToggleScreenMode = () => {
+    if (screenMode === 'normal') {
+      // 通常 → 再生モードへ切り替え
+      setScreenMode('playback');
+      // 次のコードを設定
+      const nextIdx = (currentIndex + 1) % progression.length;
+      setNextChordIndex(nextIdx);
+      setNextChord(progression[nextIdx]);
+    } else {
+      // 再生モード → 通常モードへ切り替え
+      setScreenMode('normal');
+      if (isAutoplay) {
+        stopAutoplay();
+      }
+    }
+  };
+  
   const handleSelectChord = (chord, index) => {
     setCurrentChord(chord);
     setCurrentIndex(index);
+    
+    // 次のコードも設定（存在する場合）
+    const nextIdx = (index + 1) % progression.length;
+    setNextChordIndex(nextIdx);
+    setNextChord(progression[nextIdx]);
+    
     setView('detail');
   };
   
@@ -79,18 +123,37 @@ function App() {
     const newIndex = (currentIndex - 1 + progression.length) % progression.length;
     setCurrentIndex(newIndex);
     setCurrentChord(progression[newIndex]);
+    
+    // 次のコードも更新
+    const nextIdx = (newIndex + 1) % progression.length;
+    setNextChordIndex(nextIdx);
+    setNextChord(progression[nextIdx]);
   };
   
   const handleNextChord = () => {
     const newIndex = (currentIndex + 1) % progression.length;
     setCurrentIndex(newIndex);
     setCurrentChord(progression[newIndex]);
+    
+    // 次のコードも更新
+    const nextIdx = (newIndex + 1) % progression.length;
+    setNextChordIndex(nextIdx);
+    setNextChord(progression[nextIdx]);
   };
   
   // 最初のコードに戻る処理
   const handleFirstChord = () => {
     setCurrentIndex(0);
     setCurrentChord(progression[0]);
+    
+    // 次のコードも更新
+    if (progression.length > 1) {
+      setNextChordIndex(1);
+      setNextChord(progression[1]);
+    } else {
+      setNextChordIndex(0);
+      setNextChord('');
+    }
   };
   
   // スケール表示のトグル
@@ -103,6 +166,7 @@ function App() {
       stopAutoplay();
     }
     setView('list');
+    setScreenMode('normal'); // 画面モードを通常に戻す
   };
   
   const handleBpmChange = (newBpm) => {
@@ -143,6 +207,16 @@ function App() {
     }
   };
   
+  // コード切り替えのアニメーション処理
+  const animateChordChange = () => {
+    setIsTransitioning(true);
+    
+    // アニメーション完了後に状態を更新（500ms = アニメーション時間）
+    setTimeout(() => {
+      setIsTransitioning(false);
+    }, 500);
+  };
+  
   // カウントイン開始
   const startCountIn = () => {
     // まず既存のタイマーをクリア
@@ -178,7 +252,7 @@ function App() {
     }, countInterval);
   };
   
-  // 自動コード切り替え開始
+  // 自動コード切り替え開始（アニメーション対応版）
   const startChordAutoplay = () => {
     console.log("自動再生を開始します");
     
@@ -197,7 +271,11 @@ function App() {
     // コード切り替えインターバルを設定
     timerRef.current = setInterval(() => {
       console.log("コードを次に進めます");
-      // Stateを直接更新するため、セッターを使用
+      
+      // アニメーションを開始
+      animateChordChange();
+      
+      // 次のコードに進む
       setCurrentIndex(prevIndex => {
         const newIndex = (prevIndex + 1) % progression.length;
         
@@ -211,6 +289,12 @@ function App() {
         
         // currentChordも更新
         setCurrentChord(progression[newIndex]);
+        
+        // 次のコードを更新
+        const nextNextIndex = (newIndex + 1) % progression.length;
+        setNextChordIndex(nextNextIndex);
+        setNextChord(progression[nextNextIndex]);
+        
         return newIndex;
       });
     }, barInterval);
@@ -304,6 +388,7 @@ function App() {
   
   return (
     <div className="min-h-screen bg-gray-100">
+      {/* ヘッダーは常に表示する（修正） */}
       <header className="bg-blue-600 text-white p-4">
         <div className="container mx-auto flex justify-between items-center">
           <h1 className="text-2xl font-bold">{getHeaderTitle()}</h1>
@@ -329,32 +414,63 @@ function App() {
             onSelectChord={handleSelectChord} 
           />
         ) : view === 'detail' && currentSong ? (
-          <>
-            {/* コード表示とフレットボード - 全幅 */}
-            <div className="w-full mb-6">
-              <ChordDetailView 
-                chord={currentChord}
-                progression={progression}
-                currentIndex={currentIndex}
-                onPrevChord={handlePrevChord}
-                onNextChord={handleNextChord}
-                onFirstChord={handleFirstChord}
-              />
-              
-              {/* コントロールボタン - 固定幅を使用して配置を安定させる */}
-              <div className="flex items-center mb-4">
-                {/* 左端: 最初のコードへボタン - 固定幅 */}
-                <div className="w-1/3 flex justify-start">
-                  <button
-                    onClick={handleFirstChord}
-                    className="px-4 py-2 text-sm font-medium rounded-lg bg-gray-500 text-white hover:bg-gray-600"
-                  >
-                    最初のコードへ
-                  </button>
-                </div>
-                
-                {/* 中央: 表示モード切替ボタン - 固定幅、中央揃え */}
-                <div className="w-1/3 flex justify-center">
+          screenMode === 'playback' ? (
+            <PlaybackView
+              currentChord={currentChord}
+              nextChord={nextChord}
+              isAutoplay={isAutoplay}
+              isCountIn={isCountIn}
+              countInBeats={countInBeats}
+              bpm={bpm}
+              onBpmChange={handleBpmChange}
+              onToggleCountIn={handleToggleCountIn}
+              enableCountIn={enableCountIn}
+              displayMode={displayMode}
+              setDisplayMode={setDisplayMode}
+              showScale={showScale}
+              onToggleScale={handleToggleScale}
+              onToggleScreenMode={handleToggleScreenMode}
+              songKey={currentSong.key}
+              onPrevChord={handlePrevChord}
+              onNextChord={handleNextChord}
+              onAutoplayAction={handleAutoplayAction}
+              isTransitioning={isTransitioning}
+              progression={progression}
+              currentIndex={currentIndex}
+            />
+          ) : (
+            <>
+              {/* 通常の詳細画面 */}
+              <div className="w-full mb-6">
+                {/* 画面モード切り替えとその他のボタン */}
+                <div className="flex items-center justify-between mb-4">
+                  {/* 左側: 画面モード切り替え */}
+                  <div className="inline-flex rounded-md shadow-sm" role="group">
+                    <button
+                      type="button"
+                      onClick={() => setScreenMode('normal')}
+                      className={`px-4 py-2 text-sm font-medium rounded-l-lg ${
+                        screenMode === 'normal'
+                          ? 'bg-blue-600 text-white'
+                          : 'bg-white text-gray-700 hover:bg-gray-100'
+                      } border border-gray-200`}
+                    >
+                      通常
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleToggleScreenMode()}
+                      className={`px-4 py-2 text-sm font-medium rounded-r-lg ${
+                        screenMode === 'playback'
+                          ? 'bg-blue-600 text-white'
+                          : 'bg-white text-gray-700 hover:bg-gray-100'
+                      } border border-gray-200`}
+                    >
+                      再生
+                    </button>
+                  </div>
+                  
+                  {/* 中央: 表示モード切替ボタン */}
                   <div className="inline-flex rounded-md shadow-sm" role="group">
                     <button
                       type="button"
@@ -390,10 +506,8 @@ function App() {
                       度数
                     </button>
                   </div>
-                </div>
-                
-                {/* 右端: スケール表示トグルボタン - 固定幅 */}
-                <div className="w-1/3 flex justify-end">
+                  
+                  {/* 右側: スケール表示トグルボタン */}
                   <button
                     onClick={handleToggleScale}
                     className={`px-4 py-2 text-sm font-medium rounded-lg min-w-[130px] text-center ${
@@ -405,48 +519,57 @@ function App() {
                     スケール表示 {showScale ? 'ON' : 'OFF'}
                   </button>
                 </div>
-              </div>
-              
-              <Fretboard 
-                chord={currentChord} 
-                songKey={currentSong.key}
-                displayMode={displayMode}
-                setDisplayMode={setDisplayMode}
-                showScale={showScale}
-                onToggleScale={handleToggleScale}
-              />
-            </div>
-            
-            {/* 下部のコントロールパネル - グリッドレイアウト */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {/* 左側: BPMタイマー */}
-              <div>
-                <BpmTimer 
-                    onBpmChange={handleBpmChange} 
-                    ref={bpmTimerRef}
-                    isAutoplay={isAutoplay}
-                    isCountIn={isCountIn}
-                    countInBeats={countInBeats}
-                    onToggleAutoplay={handleAutoplayAction}
-                    onToggleCountIn={handleToggleCountIn}
-                    enableCountIn={enableCountIn}
-                />
-              </div>
-              
-              {/* 右側: コード情報と操作ボタン */}
-              <div>
-                <Legend 
+                
+                <ChordDetailView 
                   chord={currentChord}
-                  songKey={currentSong.key}
-                  onBackToList={handleBackToList}
+                  progression={progression}
+                  currentIndex={currentIndex}
                   onPrevChord={handlePrevChord}
                   onNextChord={handleNextChord}
-                  currentIndex={currentIndex}
-                  totalChords={progression.length}
+                  onFirstChord={handleFirstChord}
+                />
+                
+                <Fretboard 
+                  chord={currentChord} 
+                  songKey={currentSong.key}
+                  displayMode={displayMode}
+                  setDisplayMode={setDisplayMode}
+                  showScale={showScale}
+                  onToggleScale={handleToggleScale}
                 />
               </div>
-            </div>
-          </>
+              
+              {/* 下部のコントロールパネル - グリッドレイアウト */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* 左側: BPMタイマー */}
+                <div>
+                  <BpmTimer 
+                      onBpmChange={handleBpmChange} 
+                      ref={bpmTimerRef}
+                      isAutoplay={isAutoplay}
+                      isCountIn={isCountIn}
+                      countInBeats={countInBeats}
+                      onToggleAutoplay={handleAutoplayAction}
+                      onToggleCountIn={handleToggleCountIn}
+                      enableCountIn={enableCountIn}
+                  />
+                </div>
+                
+                {/* 右側: コード情報と操作ボタン */}
+                <div>
+                  <Legend 
+                    chord={currentChord}
+                    songKey={currentSong.key}
+                    onBackToList={handleBackToList}
+                    onPrevChord={handlePrevChord}
+                    onNextChord={handleNextChord}
+                    currentIndex={currentIndex}
+                    totalChords={progression.length}
+                  />
+                </div>
+              </div>
+            </>
+          )
         ) : (
           <div className="text-center py-10">
             <p className="text-xl">曲が選択されていません</p>
@@ -460,6 +583,7 @@ function App() {
         )}
       </main>
       
+      {/* フッターは常に表示する（修正） */}
       <footer className="bg-gray-200 p-4 text-center text-gray-600">
         <p>{getFooterText()}</p>
       </footer>
